@@ -1,0 +1,38 @@
+{
+  "name": "@yourappspace/mcp-server",
+  "version": "0.1.0",
+  "description": "Official Model Context Protocol (MCP) server for YourAppSpace Core — Visual Data Model Designer, Data Grid UI, REST APIs, and Row/Field-Level Security for AI agents.",
+  "type": "module",
+  "main": "server.js",
+  "bin": {
+    "yourappspace-mcp": "./server.js"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "yourappspace",
+    "baas",
+    "database",
+    "visual-schema",
+    "claude-code",
+    "cursor",
+    "codex",
+    "rls",
+    "fls"
+  ],
+  "homepage": "https://core.yourappspace.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourappspace/yourappspace-mcp.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
