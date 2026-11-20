@@ -119,13 +119,11 @@ MCP_ENTITY_API_KEY = "<api-key>"
 | Variable | Description | Example |
 | --- | --- | --- |
 | `MCP_ENTITY_BASE_URL` | Full base URL of your YourAppSpace instance (SaaS or Docker; default: `http://localhost:8080`) | `https://core.yourappspace.com` |
-| `MCP_ENTITY_API_KEY` | Full user API key with the `ip_api_key_` prefix (without `Bearer`). Sent in the `X-Auth` header. | `ip_api_key_FLryGr0Ry...` |
-| `MCP_ENTITY_USER` | *(Optional fallback)* Email / username used only if `MCP_ENTITY_API_KEY` is omitted or blank | `demo_manager@yourappspace.com` |
-| `MCP_ENTITY_PASSWORD` | *(Optional fallback)* Account password used only if `MCP_ENTITY_API_KEY` is omitted or blank | `••••••••` |
+| `MCP_ENTITY_API_KEY` | Full user API key with the `ip_api_key_` prefix (without `Bearer`). Sent in the `X-Auth` header. | `ip_api_key_...` |
 
 ### Important Authentication Notes
 
-- **API Key priority:** A non-empty `MCP_ENTITY_API_KEY` takes priority over `MCP_ENTITY_USER` and `MCP_ENTITY_PASSWORD` and is sent directly in the `X-Auth` header. If API key authentication fails, the server **does not** fall back to username and password.
+- **API Key only:** When `MCP_ENTITY_API_KEY` is set, no username or password is needed — the key is sent directly in the `X-Auth` header (and does not fall back to username/password on failure). *(Legacy `MCP_ENTITY_USER` / `MCP_ENTITY_PASSWORD` auth is only used if `MCP_ENTITY_API_KEY` is omitted.)*
 - **Permissions:** Requests execute under the permissions of the API key owner (or signed-in user), enforcing table and record access maps (RLS & FLS).
 - **Verifying the connection:** Viewing the tool list does not verify authentication. After saving or changing `MCP_ENTITY_API_KEY` or `MCP_ENTITY_BASE_URL`, restart your MCP client and call `list_tables` with `{"offset": 0, "limit": 1}`.
   - On **HTTP `401`**: check the key value (including the `ip_api_key_` prefix), its expiration date, its owner, and API key support on the target instance.

@@ -27,21 +27,7 @@
         {
           "name": "MCP_ENTITY_API_KEY",
           "description": "Full user API key with the ip_api_key_ prefix (sent in X-Auth header)",
-          "isRequired": false,
-          "isSecret": true,
-          "format": "string"
-        },
-        {
-          "name": "MCP_ENTITY_USER",
-          "description": "Authorized user email/username (fallback when MCP_ENTITY_API_KEY is omitted)",
-          "isRequired": false,
-          "isSecret": false,
-          "format": "string"
-        },
-        {
-          "name": "MCP_ENTITY_PASSWORD",
-          "description": "Account password (fallback when MCP_ENTITY_API_KEY is omitted)",
-          "isRequired": false,
+          "isRequired": true,
           "isSecret": true,
           "format": "string"
         }
