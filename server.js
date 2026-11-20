@@ -7,6 +7,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 const BASE_URL = process.env.MCP_ENTITY_BASE_URL || "http://localhost:8080";
+const API_KEY = (process.env.MCP_ENTITY_API_KEY || "").trim();
 const USER = process.env.MCP_ENTITY_USER || "";
 const PASSWORD = process.env.MCP_ENTITY_PASSWORD || "";
 
@@ -109,6 +110,9 @@ async function login() {
 }
 
 async function getToken() {
+  if (API_KEY) {
+    return API_KEY;
+  }
   if (cachedToken) {
     return cachedToken;
   }
@@ -116,7 +120,7 @@ async function getToken() {
 }
 
 async function requestWithAuth(method, pathname, body, queryParams) {
-  const maxAttempts = 2;
+  const maxAttempts = API_KEY ? 1 : 2;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const token = await getToken();
     const response = await fetch(buildUrl(pathname, queryParams), {
@@ -134,7 +138,7 @@ async function requestWithAuth(method, pathname, body, queryParams) {
       data = parseJsonResponse(text);
     } catch (error) {
       const illegalToken = text?.toLowerCase().includes("illegal token");
-      if (illegalToken) {
+      if (illegalToken && !API_KEY) {
         cachedToken = null;
         if (attempt < maxAttempts) {
           continue;
@@ -144,9 +148,11 @@ async function requestWithAuth(method, pathname, body, queryParams) {
     }
 
     if (response.status === 401 || response.status === 403) {
-      cachedToken = null;
-      if (attempt < maxAttempts) {
-        continue;
+      if (!API_KEY) {
+        cachedToken = null;
+        if (attempt < maxAttempts) {
+          continue;
+        }
       }
     }
 
