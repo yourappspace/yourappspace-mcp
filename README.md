@@ -37,22 +37,38 @@ Most database MCP servers give an LLM raw SQL access to a database—risking des
 
 ---
 
-## Quick Start (Local STDIO Connector)
+## Quick Start (`npx` — Recommended)
 
-1. **Clone the repository and install dependencies:**
-   ```bash
-   git clone https://github.com/yourappspace/yourappspace-mcp.git
-   cd yourappspace-mcp
-   npm install
-   ```
+You can run the MCP server directly via `npx` without cloning the repository:
 
-2. **Connect your AI client** using `MCP_ENTITY_BASE_URL` and `MCP_ENTITY_API_KEY` (recommended), as shown below.
+```json
+{
+  "mcpServers": {
+    "dev-entity": {
+      "command": "npx",
+      "args": ["-y", "@yourappspace/mcp-server"],
+      "env": {
+        "MCP_ENTITY_BASE_URL": "https://core.yourappspace.com",
+        "MCP_ENTITY_API_KEY": "<api-key>"
+      }
+    }
+  }
+}
+```
+
+Or clone the repository locally:
+
+```bash
+git clone https://github.com/yourappspace/yourappspace-mcp.git
+cd yourappspace-mcp
+npm install
+```
 
 ---
 
 ## Client Configuration
 
-Replace `<path_to_repo>` with the absolute path to `yourappspace-mcp` and `<api-key>` with your full `ip_api_key_...` value.
+Replace `<api-key>` with your full `ip_api_key_...` value. (If running from a cloned repo instead of `npx`, set `"command": "node"` and `"args": ["<path_to_repo>/server.js"]`.)
 
 ### 1. Claude Code (`.mcp.json`)
 
@@ -62,8 +78,8 @@ Create or update `.mcp.json` in your project root:
 {
   "mcpServers": {
     "dev-entity": {
-      "command": "node",
-      "args": ["<path_to_repo>/server.js"],
+      "command": "npx",
+      "args": ["-y", "@yourappspace/mcp-server"],
       "env": {
         "MCP_ENTITY_BASE_URL": "https://core.yourappspace.com",
         "MCP_ENTITY_API_KEY": "<api-key>"
@@ -83,8 +99,8 @@ Add to `.cursor/mcp.json` in your project or global `~/.cursor/mcp.json`:
 {
   "mcpServers": {
     "dev-entity": {
-      "command": "node",
-      "args": ["<path_to_repo>/server.js"],
+      "command": "npx",
+      "args": ["-y", "@yourappspace/mcp-server"],
       "env": {
         "MCP_ENTITY_BASE_URL": "https://core.yourappspace.com",
         "MCP_ENTITY_API_KEY": "<api-key>"
@@ -98,8 +114,8 @@ Add to `.cursor/mcp.json` in your project or global `~/.cursor/mcp.json`:
 
 ```toml
 [mcp_servers.dev-entity]
-command = "node"
-args = ["<path_to_repo>/server.js"]
+command = "npx"
+args = ["-y", "@yourappspace/mcp-server"]
 
 [mcp_servers.dev-entity.env]
 MCP_ENTITY_BASE_URL = "https://core.yourappspace.com"
