@@ -170,7 +170,7 @@ Below is a complete end-to-end workflow inspired by our [YouTube walkthrough](ht
 > 1. `comment` — multi-line text for the customer's review
 > 2. `rating` — integer score from 1 to 5
 > 3. `status` — combobox enumeration with values `New`, `Reviewed`, and `Resolved`
-> 4. `order_id` — lookup reference linking to the existing `Order` (`order`) table
+> 4. `interaction` — lookup reference linking to the existing `Interaction` (`interaction`) table
 
 **Result:**
 The agent invokes `create_table` followed by `add_field` for each column and confirms the live schema:
@@ -179,10 +179,10 @@ The agent invokes `create_table` followed by `add_field` for each column and con
 Created table "Customer Feedback" (system name: customer_feedback, id: 6204)
 
 Fields added:
-- comment   | TEXT     | widget: textarea | Label: "Comment"
-- rating    | INTEGER  | widget: number   | Label: "Rating"
-- status    | STRING   | widget: combobox | Values: ["New", "Reviewed", "Resolved"]
-- order_id  | BIGINT   | widget: lookup   | Reference: order (Order)
+- comment     | TEXT     | widget: textarea | Label: "Comment"
+- rating      | INTEGER  | widget: number   | Label: "Rating"
+- status      | STRING   | widget: combobox | Values: ["New", "Reviewed", "Resolved"]
+- interaction | BIGINT   | widget: lookup   | Reference: interaction (Interaction)
 
 You can now inspect the schema in Data Model Designer or open the Data Grid at My Application -> My Tables -> customer_feedback.
 ```
@@ -192,24 +192,24 @@ You can now inspect the schema in Data Model Designer or open the Data Grid at M
 ### 2. Insert Records into the New Table
 
 **Prompt:**
-> Add 4 sample feedback records into `customer_feedback` linked to existing orders:
-> - Order 1: rating 5, status `Reviewed`, comment `"Fast delivery and great packaging"`
-> - Order 2: rating 4, status `New`, comment `"Good quality, minor delay on shipping"`
-> - Order 3: rating 2, status `New`, comment `"Missing instruction manual in the box"`
-> - Order 6: rating 5, status `Resolved`, comment `"Discount applied smoothly, will order again"`
+> Add 4 sample feedback records into `customer_feedback` linked to existing `Interaction` records:
+> - Interaction 1: rating 5, status `Reviewed`, comment `"Fast response and clear onboarding walkthrough"`
+> - Interaction 2: rating 4, status `New`, comment `"Helpful consultation, minor follow-up needed"`
+> - Interaction 3: rating 2, status `New`, comment `"Took too long to get an initial reply"`
+> - Interaction 4: rating 5, status `Resolved`, comment `"Issue resolved quickly on the first call"`
 
 **Result:**
-The agent calls `read_rows` on `order` to verify valid order IDs, then executes `create_rows` in batch mode on `customer_feedback`:
+The agent calls `read_rows` on `interaction` to verify valid interaction IDs, then executes `create_rows` in batch mode on `customer_feedback`:
 
 ```text
 Inserted 4 records into customer_feedback:
 
-| id  | order_id       | rating | status   | comment                                       |
-| --- | -------------- | ------ | -------- | --------------------------------------------- |
-| 101 | Order 1 (id:1) | 5      | Reviewed | Fast delivery and great packaging             |
-| 102 | Order 2 (id:2) | 4      | New      | Good quality, minor delay on shipping         |
-| 103 | Order 3 (id:3) | 2      | New      | Missing instruction manual in the box         |
-| 104 | Order 6 (id:6) | 5      | Resolved | Discount applied smoothly, will order again   |
+| id  | interaction          | rating | status   | comment                                          |
+| --- | -------------------- | ------ | -------- | ------------------------------------------------ |
+| 101 | Interaction 1 (id:1) | 5      | Reviewed | Fast response and clear onboarding walkthrough   |
+| 102 | Interaction 2 (id:2) | 4      | New      | Helpful consultation, minor follow-up needed     |
+| 103 | Interaction 3 (id:3) | 2      | New      | Took too long to get an initial reply            |
+| 104 | Interaction 4 (id:4) | 5      | Resolved | Issue resolved quickly on the first call         |
 ```
 
 ---
@@ -225,11 +225,11 @@ The agent calls `read_rows` with a filter (`rating >= 4`) and aggregates the ret
 ```text
 Filtered records from customer_feedback (rating >= 4):
 
-| id  | order_id | rating | status   | comment                                     |
-| --- | -------- | ------ | -------- | ------------------------------------------- |
-| 101 | 1        | 5      | Reviewed | Fast delivery and great packaging           |
-| 102 | 2        | 4      | New      | Good quality, minor delay on shipping       |
-| 104 | 6        | 5      | Resolved | Discount applied smoothly, will order again |
+| id  | interaction | rating | status   | comment                                        |
+| --- | ----------- | ------ | -------- | ---------------------------------------------- |
+| 101 | 1           | 5      | Reviewed | Fast response and clear onboarding walkthrough |
+| 102 | 2           | 4      | New      | Helpful consultation, minor follow-up needed   |
+| 104 | 4           | 5      | Resolved | Issue resolved quickly on the first call       |
 
 Summary & Aggregation (rating >= 4):
 - Matching records: 3 of 4 total
