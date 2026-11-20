@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.yourappspace/yourappspace-mcp",
-  "description": "MCP server for YourAppSpace Core — Visual Schema Designer, Data Grid UI, REST APIs, and Row/Field-Level Security for AI agents.",
+  "description": "MCP server for YourAppSpace Core: visual schema designer, data grid UI, REST APIs, and RLS/FLS.",
   "repository": {
     "url": "https://github.com/yourappspace/yourappspace-mcp",
     "source": "github"
