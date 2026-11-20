@@ -242,6 +242,19 @@ Summary & Aggregation (rating >= 4):
 
 ---
 
+## Demo Limits & Registration
+
+If you started with an instant **Demo Mode** workspace (via **Try now** on [core.yourappspace.com](https://core.yourappspace.com)), your workspace includes a starter quota for records and API/MCP requests.
+
+When you see an error indicating that the **record count** or **request limit** has been reached (for example, `The tariff limit "Record count" has been exhausted...`), simply:
+
+1. Click **"Sign Up Free"** in the top-right bar of your YourAppSpace workspace.
+2. Enter your email address and complete registration by **confirming your email** via the link sent to your inbox.
+
+Once your email is confirmed, your workspace is saved permanently with higher free-tier limits (or you can upgrade to a paid plan as your project grows).
+
+---
+
 ## Resources
 
 - **Live Sandbox (No Sign-Up Required):** [core.yourappspace.com](https://core.yourappspace.com)
