@@ -133,7 +133,7 @@ MCP_ENTITY_API_KEY = "<api-key>"
 
 ---
 
-## Available MCP Tools (8 Tools)
+## Available MCP Tools (9 Tools)
 
 | Tool | Purpose | Modifies Data |
 | --- | --- | --- |
@@ -141,6 +141,7 @@ MCP_ENTITY_API_KEY = "<api-key>"
 | `get_table` | Retrieves table metadata, column types, and schema definition | No |
 | `create_table` | Creates a new custom table in the active workspace | Yes |
 | `add_field` | Adds a data column (`INTEGER`, `STRING`, `TEXT`, `combobox`, etc.) or lookup relationship | Yes |
+| `delete_field` | Deletes a non-key field from an entity type | Yes |
 | `read_rows` | Queries records with `WHERE` / JSON filters, ordering, and pagination | No |
 | `create_rows` | Inserts one or multiple records in batch mode | Yes |
 | `update_rows` | Updates one or multiple records by primary key | Yes |

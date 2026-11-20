@@ -7,7 +7,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 const BASE_URL = process.env.MCP_ENTITY_BASE_URL || "http://localhost:8080";
-const API_KEY = (process.env.MCP_ENTITY_API_KEY || "").trim();
+const API_KEY = process.env.MCP_ENTITY_API_KEY?.trim();
 const USER = process.env.MCP_ENTITY_USER || "";
 const PASSWORD = process.env.MCP_ENTITY_PASSWORD || "";
 
@@ -79,7 +79,7 @@ function summarizeError(data) {
 async function login() {
   if (!USER || !PASSWORD) {
     throw new Error(
-      "MCP_ENTITY_USER and MCP_ENTITY_PASSWORD must be set for authentication."
+      "MCP_ENTITY_API_KEY or both MCP_ENTITY_USER and MCP_ENTITY_PASSWORD must be set for authentication."
     );
   }
 
@@ -129,7 +129,7 @@ async function requestWithAuth(method, pathname, body, queryParams) {
         "Content-Type": "application/json",
         "X-Auth": token,
       },
-      body: body ? JSON.stringify(body) : undefined,
+      body: body == null ? undefined : JSON.stringify(body),
     });
 
     const text = await response.text();
@@ -138,7 +138,7 @@ async function requestWithAuth(method, pathname, body, queryParams) {
       data = parseJsonResponse(text);
     } catch (error) {
       const illegalToken = text?.toLowerCase().includes("illegal token");
-      if (illegalToken && !API_KEY) {
+      if (!API_KEY && illegalToken) {
         cachedToken = null;
         if (attempt < maxAttempts) {
           continue;
@@ -147,12 +147,10 @@ async function requestWithAuth(method, pathname, body, queryParams) {
       throw error;
     }
 
-    if (response.status === 401 || response.status === 403) {
-      if (!API_KEY) {
-        cachedToken = null;
-        if (attempt < maxAttempts) {
-          continue;
-        }
+    if (!API_KEY && (response.status === 401 || response.status === 403)) {
+      cachedToken = null;
+      if (attempt < maxAttempts) {
+        continue;
       }
     }
 
@@ -249,11 +247,41 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "list_tables",
-        description: "List all entity types (tables).",
+        name: "delete_field",
+        description: "Delete a field from an entity type. Key fields cannot be deleted.",
         inputSchema: {
           type: "object",
-          properties: {},
+          properties: {
+            tableName: {
+              type: "string",
+              description: "Target table name (required).",
+            },
+            fieldName: {
+              type: "string",
+              description: "Field name to delete (required).",
+            },
+          },
+          required: ["tableName", "fieldName"],
+        },
+      },
+      {
+        name: "list_tables",
+        description: "List entity types (tables). Omit offset and limit for the full legacy list; use pagination for large lists.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            offset: {
+              type: "integer",
+              minimum: 0,
+              description: "Optional offset (default 0 when pagination is enabled).",
+            },
+            limit: {
+              type: "integer",
+              minimum: 1,
+              maximum: 500,
+              description: "Optional page size (default 50 when pagination is enabled, max 500).",
+            },
+          },
         },
       }, {
   name: "get_table",
@@ -485,15 +513,44 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     };
   }
 
+  if (name === "delete_field") {
+    requireValue(args?.tableName, "tableName");
+    requireValue(args?.fieldName, "fieldName");
+
+    const data = await requestWithAuth(
+      "DELETE",
+      `${ENTITY_PATH}/${encodeURIComponent(args.tableName)}/fields/${encodeURIComponent(args.fieldName)}`
+    );
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(data?.contents ?? data, null, 2),
+        },
+      ],
+    };
+  }
+
   if (name === "list_tables") {
-    const data = await getWithAuth(ENTITY_PATH);
+    const paginated = args?.offset !== undefined || args?.limit !== undefined;
+    if (args?.offset !== undefined && (!Number.isInteger(args.offset) || args.offset < 0)) {
+      throw new Error("offset must be an integer >= 0.");
+    }
+    if (args?.limit !== undefined && (!Number.isInteger(args.limit) || args.limit <= 0 || args.limit > 500)) {
+      throw new Error("limit must be an integer between 1 and 500.");
+    }
+    const data = await getWithAuth(ENTITY_PATH, {
+      offset: args?.offset,
+      limit: args?.limit,
+    });
 
     return {
       content: [
         {
           type: "text",
           text: JSON.stringify(
-            data?.contents?.items ?? data?.contents ?? data,
+            paginated ? (data?.contents ?? data) : (data?.contents?.items ?? data?.contents ?? data),
             null,
             2
           ),
