@@ -1,7 +1,7 @@
 {
   "name": "@yourappspace/mcp-server",
   "mcpName": "io.github.yourappspace/yourappspace-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Official Model Context Protocol (MCP) server for YourAppSpace Core — Visual Data Model Designer, Data Grid UI, REST APIs, and Row/Field-Level Security for AI agents.",
   "type": "module",
   "main": "server.js",

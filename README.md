@@ -49,7 +49,6 @@ You can run the MCP server directly via `npx` without cloning the repository:
       "command": "npx",
       "args": ["-y", "@yourappspace/mcp-server"],
       "env": {
-        "MCP_ENTITY_BASE_URL": "https://core.yourappspace.com",
         "MCP_ENTITY_API_KEY": "<api-key>"
       }
     }
@@ -69,7 +68,7 @@ npm install
 
 ## Client Configuration
 
-Replace `<api-key>` with your full `ip_api_key_...` value. (If running from a cloned repo instead of `npx`, set `"command": "node"` and `"args": ["<path_to_repo>/server.js"]`.)
+Replace `<api-key>` with your full `ip_api_key_...` value. `MCP_ENTITY_BASE_URL` defaults to `https://core.yourappspace.com` and only needs to be added for self-hosted/Docker instances. (If running from a cloned repo instead of `npx`, set `"command": "node"` and `"args": ["<path_to_repo>/server.js"]`.)
 
 ### 1. Claude Code (`.mcp.json`)
 
@@ -82,7 +81,6 @@ Create or update `.mcp.json` in your project root:
       "command": "npx",
       "args": ["-y", "@yourappspace/mcp-server"],
       "env": {
-        "MCP_ENTITY_BASE_URL": "https://core.yourappspace.com",
         "MCP_ENTITY_API_KEY": "<api-key>"
       }
     }
@@ -103,7 +101,6 @@ Add to `.cursor/mcp.json` in your project or global `~/.cursor/mcp.json`:
       "command": "npx",
       "args": ["-y", "@yourappspace/mcp-server"],
       "env": {
-        "MCP_ENTITY_BASE_URL": "https://core.yourappspace.com",
         "MCP_ENTITY_API_KEY": "<api-key>"
       }
     }
@@ -119,7 +116,6 @@ command = "npx"
 args = ["-y", "@yourappspace/mcp-server"]
 
 [mcp_servers.dev-entity.env]
-MCP_ENTITY_BASE_URL = "https://core.yourappspace.com"
 MCP_ENTITY_API_KEY = "<api-key>"
 ```
 
@@ -135,8 +131,8 @@ MCP_ENTITY_API_KEY = "<api-key>"
 
 | Variable | Description | Example |
 | --- | --- | --- |
-| `MCP_ENTITY_BASE_URL` | Full base URL of your YourAppSpace instance (SaaS or Docker; default: `http://localhost:8080`) | `https://core.yourappspace.com` |
 | `MCP_ENTITY_API_KEY` | Full user API key with the `ip_api_key_` prefix (without `Bearer`). Sent in the `X-Auth` header. | `ip_api_key_...` |
+| `MCP_ENTITY_BASE_URL` | *(Optional)* Defaults to `https://core.yourappspace.com`; set only for self-hosted/Docker instances such as `http://localhost:8080`. | `https://core.yourappspace.com` |
 
 ### Important Authentication Notes
 

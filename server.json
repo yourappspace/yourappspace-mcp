@@ -6,29 +6,29 @@
     "url": "https://github.com/yourappspace/yourappspace-mcp",
     "source": "github"
   },
-  "version": "0.1.1",
+  "version": "0.1.2",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@yourappspace/mcp-server",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
-          "name": "MCP_ENTITY_BASE_URL",
-          "description": "Full base URL of your YourAppSpace instance (e.g. https://core.yourappspace.com or http://localhost:8080)",
-          "isRequired": true,
-          "isSecret": false,
-          "format": "string"
-        },
-        {
           "name": "MCP_ENTITY_API_KEY",
           "description": "Full user API key with the ip_api_key_ prefix (sent in X-Auth header)",
           "isRequired": true,
           "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "MCP_ENTITY_BASE_URL",
+          "description": "Optional base URL override for self-hosted/Docker instances (defaults to https://core.yourappspace.com)",
+          "isRequired": false,
+          "isSecret": false,
           "format": "string"
         }
       ]

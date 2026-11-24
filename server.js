@@ -6,7 +6,7 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 
-const BASE_URL = process.env.MCP_ENTITY_BASE_URL || "http://localhost:8080";
+const BASE_URL = process.env.MCP_ENTITY_BASE_URL || "https://core.yourappspace.com";
 const API_KEY = process.env.MCP_ENTITY_API_KEY?.trim();
 const USER = process.env.MCP_ENTITY_USER || "";
 const PASSWORD = process.env.MCP_ENTITY_PASSWORD || "";
@@ -177,7 +177,7 @@ async function getWithAuth(pathname, queryParams) {
 const server = new Server(
   {
     name: "mcp-entity",
-    version: "0.1.1",
+    version: "0.1.2",
   },
   {
     capabilities: {
