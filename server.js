@@ -191,17 +191,25 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "create_table",
-        description: "Create an entity type (table).",
+        description:
+          "Create a new custom entity type (table) in the active workspace. Schema-mutating operation requiring administrative permissions. Newly created tables automatically include system columns such as `<tableName>id` (PK) and `displayname` (required when inserting rows). Check `list_tables` first to avoid duplicates; use `add_field` afterwards to add custom columns or lookups. Returns `{ entityType: { id, tableName, displayName, dataSourceType, workspaceId } }`.",
+        annotations: {
+          title: "Create Table",
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: true,
+        },
         inputSchema: {
           type: "object",
           properties: {
             tableName: {
               type: "string",
-              description: "Table name (required).",
+              description: "Unique lowercase system name for the new table (e.g. `customer_feedback`). Required.",
             },
             displayName: {
               type: "string",
-              description: "Display name (optional). Defaults to tableName.",
+              description: "Human-readable table label (optional). Defaults to `tableName`.",
             },
           },
           required: ["tableName"],
@@ -210,37 +218,44 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "add_field",
         description:
-          "Add a field to an entity type. Use fieldType or specify lookupEntity/lookupField for lookups.",
+          "Add a new column or lookup relationship to an existing table. Non-destructive schema mutation (existing rows receive null for the new field); requires administrative permissions. Specify either `fieldType` for a scalar column OR `lookupEntity` (and optional `lookupField`) for a foreign-key reference. Use `create_table` to create a new table, `get_table` to inspect existing fields, and `delete_field` to remove a field. Returns `{ field: { id, fieldName, displayName, fieldType, lookupEntity, lookupField } }`.",
+        annotations: {
+          title: "Add Field",
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: true,
+        },
         inputSchema: {
           type: "object",
           properties: {
             tableName: {
               type: "string",
-              description: "Target table name (required).",
+              description: "Target system table name (required).",
             },
             fieldName: {
               type: "string",
-              description: "Field name (required).",
+              description: "Unique system name for the new field (required).",
             },
             fieldType: {
               type: "string",
               description:
-                "Optional data type. One of: " +
+                "Scalar data type (omit when creating a lookup via `lookupEntity`). One of: " +
                 Array.from(FIELD_TYPES).join(", "),
             },
             displayName: {
               type: "string",
               description:
-                "Display name (optional). Defaults to camelCaseToCaption(fieldName).",
+                "Human-readable column label (optional). Defaults to `camelCaseToCaption(fieldName)`.",
             },
             lookupEntity: {
               type: "string",
-              description: "Lookup entity name for AUTOCOMPLETE fields (optional).",
+              description: "Target entity `tableName` for a lookup/foreign-key field (optional; e.g. `interaction`).",
             },
             lookupField: {
               type: "string",
               description:
-                "Lookup field name (optional). Defaults to lookup entity PK.",
+                "Referenced field on `lookupEntity` (optional). Defaults to the lookup entity's primary key.",
             },
           },
           required: ["tableName", "fieldName"],
@@ -248,17 +263,25 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "delete_field",
-        description: "Delete a field from an entity type. Key fields cannot be deleted.",
+        description:
+          "Permanently delete a non-key field from an entity type. Irreversible destructive schema mutation: removes the column definition and its stored values across all existing rows; requires administrative permissions. System/primary key fields cannot be deleted. Use `get_table` first to verify the field name, `add_field` to add columns, or `delete_rows` to delete records instead of columns. Returns confirmation of the deleted field.",
+        annotations: {
+          title: "Delete Field",
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: false,
+          openWorldHint: true,
+        },
         inputSchema: {
           type: "object",
           properties: {
             tableName: {
               type: "string",
-              description: "Target table name (required).",
+              description: "Target system table name (required).",
             },
             fieldName: {
               type: "string",
-              description: "Field name to delete (required).",
+              description: "System name of the non-key field to permanently delete (required).",
             },
           },
           required: ["tableName", "fieldName"],
@@ -266,65 +289,90 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "list_tables",
-        description: "List entity types (tables). Omit offset and limit for the full legacy list; use pagination for large lists.",
+        description:
+          "List entity types (tables) accessible to the authenticated user (enforcing workspace permissions). Read-only. Omit both `offset` and `limit` to retrieve the full legacy list; provide `offset` and/or `limit` for paginated results. Returns `{ meta: { total, offset, limit, hasMore, returned }, items: [{ id, tableName, displayName, dataSourceType, workspaceId }] }` (or an array in legacy mode). Follow with `get_table` to inspect a table's columns.",
+        annotations: {
+          title: "List Tables",
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: true,
+        },
         inputSchema: {
           type: "object",
           properties: {
             offset: {
               type: "integer",
               minimum: 0,
-              description: "Optional offset (default 0 when pagination is enabled).",
+              description: "Zero-based pagination offset (optional; defaults to 0 when pagination is enabled).",
             },
             limit: {
               type: "integer",
               minimum: 1,
               maximum: 500,
-              description: "Optional page size (default 50 when pagination is enabled, max 500).",
+              description: "Page size (optional; defaults to 50 when pagination is enabled, max 500).",
             },
           },
         },
-      }, {
-  name: "get_table",
-  description: "Fetch an entity type by id or table name.",
-  inputSchema: {
-    type: "object",
-    properties: {
-      idOrName: {
-        type: "string",
-        description: "Table id or table name.",
       },
-      tableName: {
-        type: "string",
-        description: "Table name.",
+      {
+        name: "get_table",
+        description:
+          "Fetch full metadata, primary key name, and column/field definitions for a single entity type. Read-only. Provide either `idOrName` (numeric table ID or system `tableName`) or `tableName`. Always call this before `create_rows`, `update_rows`, or `read_rows` to discover exact field names, data types, lookup targets, and required fields (such as `displayname`). Returns `{ entityType: {...}, fields: [...] }`.",
+        annotations: {
+          title: "Get Table Schema",
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: true,
+        },
+        inputSchema: {
+          type: "object",
+          properties: {
+            idOrName: {
+              type: "string",
+              description: "Numeric table ID or system `tableName` (provide either `idOrName` or `tableName`).",
+            },
+            tableName: {
+              type: "string",
+              description: "System `tableName` (alternative to `idOrName`).",
+            },
+          },
+          additionalProperties: false,
+          required: [],
+        },
       },
-    },
-    additionalProperties: false,
-    required: [],
-  },
-},
       {
         name: "create_rows",
-        description: "Create one or more rows in an entity type.",
+        description:
+          "Insert one or multiple new records into an entity type. Mutates data, enforcing row/field permissions and workspace tariff limits. Pass `item` for a single record OR `items` for batch insertion (do not pass both). Custom tables typically require `displayname`—call `get_table` first to check required fields. Bulk inserts are non-atomic: each row is processed independently and the response returns `{ count, items: [{ status: 'ok', item }], errors: [{ status: 'error', index, message }] }`. Use `update_rows` to modify existing records.",
+        annotations: {
+          title: "Create Rows",
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: true,
+        },
         inputSchema: {
           type: "object",
           properties: {
             tableName: {
               type: "string",
-              description: "Target table name (required).",
+              description: "Target system table name (required).",
             },
             item: {
               type: "object",
-              description: "Single row to insert (optional).",
+              description: "Single row payload to insert (use either `item` or `items`, not both).",
             },
             items: {
               type: "array",
               items: { type: "object" },
-              description: "Rows to insert in bulk (optional).",
+              description: "Array of row payloads to insert in batch mode (use either `items` or `item`).",
             },
             returnFields: {
               type: "array",
               items: { type: "string" },
-              description: "Optional list of fields to return.",
+              description: "Optional list of field names to include in each returned `item`.",
             },
           },
           required: ["tableName"],
@@ -332,43 +380,50 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "read_rows",
-        description: "Read rows from an entity type with optional filtering.",
+        description:
+          "Query records from an entity type with optional filtering, sorting, and pagination. Read-only; enforces Row-Level and Field-Level Security (RLS & FLS). Filtering options: use `whereQuery` (SQL-like condition, e.g. `rating >= 4`) with optional `params` bind map (`:paramName`), OR pass structured `filters` JSON (do not combine conflicting filters). Returns `{ meta: { offset, limit, returned, total? }, items: [...] }`. Call `get_table` first to verify filterable field names.",
+        annotations: {
+          title: "Read Rows",
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: true,
+        },
         inputSchema: {
           type: "object",
           properties: {
             tableName: {
               type: "string",
-              description: "Target table name (required).",
+              description: "Target system table name (required).",
             },
             whereQuery: {
               type: "string",
-              description: "Optional where query string.",
+              description: "Optional SQL-like WHERE expression (e.g. `rating >= 4` or `status = :status`).",
             },
             params: {
               type: "object",
-              description: "Optional params map for whereQuery.",
+              description: "Optional key-value bind parameters for placeholders in `whereQuery`.",
             },
             filters: {
               type: "object",
-              description: "Optional filters JSON.",
+              description: "Optional structured JSON filter object (alternative to `whereQuery`).",
             },
             offset: {
               type: "integer",
-              description: "Optional offset (default 0).",
+              description: "Zero-based pagination offset (optional, default 0).",
             },
             limit: {
               type: "integer",
-              description: "Optional limit (default 50, max 500).",
+              description: "Maximum rows to return (optional, default 50, max 500).",
             },
             orderBy: {
               type: "string",
               description:
-                "Optional orderBy string. You can pass JSON array as a string, for example: " +
-                "[{\"field\":\"name\",\"direction\":\"asc\"}]",
+                "Optional sort specification as a JSON array string, e.g. `[{\"field\":\"name\",\"direction\":\"asc\"}]`.",
             },
             includeTotal: {
               type: "boolean",
-              description: "Optional includeTotal flag.",
+              description: "Optional flag to include total matching row count in `meta.total`.",
             },
           },
           required: ["tableName"],
@@ -376,27 +431,35 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "update_rows",
-        description: "Update one or more rows in an entity type.",
+        description:
+          "Partially update (patch) one or multiple existing records by primary key. Mutates data, enforcing RLS & FLS. Pass `item` for a single update OR `items` for batch updates (not both). Each object MUST include the table's primary key (`<tableName>id`) plus at least one field to update (only provided fields are modified). Bulk updates are non-atomic and return `{ count, items: [{ status: 'ok', item }], errors: [{ status: 'error', index, message }] }`. Use `create_rows` for new records or `delete_rows` to remove records.",
+        annotations: {
+          title: "Update Rows",
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: true,
+        },
         inputSchema: {
           type: "object",
           properties: {
             tableName: {
               type: "string",
-              description: "Target table name (required).",
+              description: "Target system table name (required).",
             },
             item: {
               type: "object",
-              description: "Single row update (optional). Must include PK.",
+              description: "Single row patch object (use either `item` or `items`). Must include PK and >=1 field to update.",
             },
             items: {
               type: "array",
               items: { type: "object" },
-              description: "Row updates in bulk (optional). Must include PK.",
+              description: "Array of row patch objects for batch update (use either `items` or `item`). Each must include PK.",
             },
             returnFields: {
               type: "array",
               items: { type: "string" },
-              description: "Optional list of fields to return.",
+              description: "Optional list of field names to include in each returned `item`.",
             },
           },
           required: ["tableName"],
@@ -404,22 +467,30 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "delete_rows",
-        description: "Delete one or more rows in an entity type.",
+        description:
+          "Permanently delete one or multiple records by primary key. Irreversible destructive operation enforcing RLS permissions. Pass `item` for a single delete OR `items` for batch deletion (not both). Each object only needs the primary key field (e.g. `{ \"customer_feedbackid\": 1 }`; other fields are ignored). Bulk deletes are non-atomic and return `{ count, items: [{ status: 'ok', item }], errors: [{ status: 'error', index, message }] }`. Use `update_rows` to modify rows or `delete_field` to drop a column.",
+        annotations: {
+          title: "Delete Rows",
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: false,
+          openWorldHint: true,
+        },
         inputSchema: {
           type: "object",
           properties: {
             tableName: {
               type: "string",
-              description: "Target table name (required).",
+              description: "Target system table name (required).",
             },
             item: {
               type: "object",
-              description: "Single row delete (optional). Must include PK.",
+              description: "Single row delete object containing the primary key (use either `item` or `items`).",
             },
             items: {
               type: "array",
               items: { type: "object" },
-              description: "Row deletes in bulk (optional). Must include PK.",
+              description: "Array of row delete objects for batch deletion (use either `items` or `item`). Each must include PK.",
             },
           },
           required: ["tableName"],
