@@ -1,0 +1,24 @@
+---
+description: Best practices for creating and managing YourAppSpace Core tables, fields, lookup relationships, and CRUD queries via the dev-entity MCP server.
+alwaysApply: false
+---
+
+# YourAppSpace Core MCP (`dev-entity`) Rules
+
+When interacting with a YourAppSpace Core backend via the `dev-entity` MCP server:
+
+1. **Inspect before mutating:** Call `list_tables` (`{"offset": 0, "limit": 50}`) and `get_table` before inserting or updating rows to confirm exact system table names, primary key fields (`<tableName>id`), lookup targets, and required columns.
+2. **Required `displayname` on custom tables:** Newly created custom tables require `displayname` when calling `create_rows`.
+3. **Schema creation and evolution:**
+   - Use `create_table` (`tableName`, `displayName`) to create a new custom table.
+   - Use `add_field` with `fieldType` (`INTEGER`, `DOUBLE`, `BOOLEAN`, `STRING`, `DATETIME`, `DATE`, `TIME`, `TEXT`, `BIGINT`) for scalar columns, or `lookupEntity` (e.g. `interaction`) for foreign-key references.
+   - Do not attempt to delete primary/system key fields via `delete_field`.
+4. **Batch CRUD semantics:**
+   - Pass either `item` (single row) OR `items` (batch array) for `create_rows`, `update_rows`, and `delete_rows` — never both.
+   - Batch operations are non-atomic; inspect both `items` and `errors` in the response.
+   - Every `update_rows` and `delete_rows` item must include the table's primary key (`<tableName>id`).
+5. **Filtering and querying:**
+   - Use `read_rows` with `whereQuery` (e.g. `rating >= 4`) and optional `params` bind map, or structured `filters` JSON, plus `orderBy`, `offset`, `limit` (max 500), and `includeTotal`.
+6. **Authentication:**
+   - Set `MCP_ENTITY_API_KEY` (`ip_api_key_...`, copied from the welcome message after clicking **Try now** on https://core.yourappspace.com).
+   - `MCP_ENTITY_BASE_URL` defaults to `https://core.yourappspace.com` and only needs to be overridden for self-hosted/Docker instances.

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "dev-entity": {
+      "command": "npx",
+      "args": ["-y", "@yourappspace/mcp-server"],
+      "env": {
+        "MCP_ENTITY_API_KEY": "${MCP_ENTITY_API_KEY}"
+      }
+    }
+  }
+}
