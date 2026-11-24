@@ -5,6 +5,7 @@
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-core.yourappspace.com-ff3b30)](https://core.yourappspace.com)
 [![Documentation](https://img.shields.io/badge/Docs-yourappspace.com%2Fdocs-blue)](https://yourappspace.com/docs.html)
 [![Video Tutorial](https://img.shields.io/badge/YouTube-Tutorial-red)](https://youtu.be/1x-sCBesZVo)
+[![yourappspace/yourappspace-mcp MCP server](https://glama.ai/mcp/servers/yourappspace/yourappspace-mcp/badges/score.svg)](https://glama.ai/mcp/servers/yourappspace/yourappspace-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
 ---
